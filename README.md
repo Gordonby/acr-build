@@ -1,6 +1,8 @@
 # Build images with Azure Container Registry
 
-This action can be used to build containers using an Azure Container Registry. 
+This action can be used to build containers using an Azure Container Registry.
+
+For more information about his capability, have a look at the [docs tutorial](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-quick-task).
 
 ## Action capabilities
 
@@ -63,28 +65,10 @@ Following the capabilities of this action:
 
   <tr>
     <td><code>registry</code><br/></td>
-    <td>(Mandatory)The Azure Container Registry name</td>
+    <td>(Mandatory) The Azure Container Registry name</td>
     <td></td>
   </tr>
 
-  <tr>
-    <td><code>tenant</code><br/></td>
-    <td>(Mandatory)The ACR tenant</td>
-    <td></td>
-  </tr>
-
-  <tr>
-    <td><code>service_principal</code><br/></td>
-    <td>(Mandatory) The Service Principal credentials</td>
-    <td></td>
-  </tr>
-
-  <tr>
-    <td><code>service_principal_password</code><br/></td>
-    <td>(Mandatory) The Service Principal credentials </td>
-    <td></td>
-  </tr>  
-  
   <tr>
     <td><code>build_args</code><br/></td>
     <td>(Optional) Build arguments </td>
@@ -93,23 +77,38 @@ Following the capabilities of this action:
 
 </table>
 
-## Example usage
+## Example usage - Public Repository
 
-Create an SP with Contributor access to the Azure Container Registry
+This example builds the Azure Voting App front-end.
 
-```bash
-az ad sp create-for-rbac -n "acrtask0" --skip-assignment
-az role assignment create --assignee <spID> --scope <resourceID of the ACR> --role "Contributor"
+```yaml
+name: build_image
+on:
+ workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Azure Login
+        uses: Azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR build
+        id: acr
+        uses: azure/acr-build@v1
+        with:
+          registry: MyAzureContainerRegistry
+          repository: azure-voting-app-redis #${{ github.repository.name }}
+          image: azurevote
+          folder: azure-vote
 ```
 
-In your repository, create the following secrets (or set them in clear in the workflow definition):
+## Example usage - Private Repository
 
-- service_principal
-- service_principal_password
-- tenant
-- registry
-- repository
-- (optional, for accessing private repositories) git_access_token 
+In your repository, optionally create the following secrets (or set them in clear in the workflow definition):
+- git_access_token (for accessing private repositories)
 
 In `.github/workflows` create a workflow file like the following:
 
@@ -123,19 +122,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Azure Login
+        uses: Azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       - name: ACR build
         id: acr
         uses: azure/acr-build@v1
         with:
-          service_principal: ${{ secrets.service_principal }}
-          service_principal_password: ${{ secrets.service_principal_password }}
-          tenant: ${{ secrets.tenant }}
-          registry: ${{ secrets.registry }}
-          repository: ${{ secrets.repository }}
-          image: image
+          registry: MyAzureContainerRegistry
+          repository: ${{ github.repository.name }}
+          image: ${{ github.repository.name }}
           git_access_token: ${{ secrets.git_access_token }}
           folder: src/docker
-          dockerfile: ../../dockerfiles/Dockerfile
+          folder: ../../dockerfiles/Dockerfile
 ```
 
 # Contributing

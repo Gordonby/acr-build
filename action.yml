@@ -5,12 +5,6 @@ branding:
   color: "blue"
 description: "Use ACR to build a container image"
 inputs:
-  service_principal:
-    description: "Service Principal with Contributor role on the ACR"
-    required: true
-  service_principal_password:
-    description: "Service Principal password"
-    required: true
   tenant:
     description: "Azure Container Registry tenant"
     required: true
@@ -30,7 +24,7 @@ inputs:
     description: "Docker image tag, default to the commit SHA"
     required: false
   branch:
-    description: "Branch to build from, defaults to master"
+    description: "Branch to build from, defaults to main"
     required: false
   folder:
     description: "The folder in the Github repo that holds the source"
